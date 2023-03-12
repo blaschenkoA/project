@@ -35,6 +35,7 @@ def handle_dialog(req, res):
     if req['session']['new']:
 
         sessionStorage[user_id] = {
+            'name': 'слон',
             'suggests': [
                 "Не хочу.",
                 "Не буду.",
@@ -42,7 +43,7 @@ def handle_dialog(req, res):
             ]
         }
 
-        res['response']['text'] = 'Привет! Купи слона!'
+        res['response']['text'] = f"Привет! Купи {sessionStorage[user_id]['name']}а!"
 
         res['response']['buttons'] = get_suggests(user_id)
         return
@@ -51,15 +52,40 @@ def handle_dialog(req, res):
         'ладно',
         'куплю',
         'покупаю',
-        'хорошо'
-    ]:
+        'хорошо',
+        'я покупаю',
+        'я куплю'
+    ] and sessionStorage[user_id]['name'] == 'слон':
 
-        res['response']['text'] = 'Слона можно найти на Яндекс.Маркете!'
+        res['response']['text'] = 'Слона можно найти на Яндекс.Маркете! ' \
+                                  'А теперь купи кролика!'
+        sessionStorage[user_id] = {
+            'name': 'кролик',
+            'suggests': [
+                "Не хочу.",
+                "Не буду.",
+                "Отстань!",
+            ]
+        }
+        res['response']['buttons'] = get_suggests(user_id)
+        return
+
+    if req['request']['original_utterance'].lower() in [
+        'ладно',
+        'куплю',
+        'покупаю',
+        'хорошо',
+        'я покупаю',
+        'я куплю'
+    ] and sessionStorage[user_id]['name'] != 'слон':
+
+        res['response']['text'] = 'Кролика можно найти на Яндекс.Маркете!'
         res['response']['end_session'] = True
         return
 
     res['response']['text'] = \
-        f"Все говорят '{req['request']['original_utterance']}', а ты купи слона!"
+        f"Все говорят '{req['request']['original_utterance']}', " \
+        f"а ты купи {sessionStorage[user_id]['name']}а!"
     res['response']['buttons'] = get_suggests(user_id)
 
 
@@ -78,7 +104,7 @@ def get_suggests(user_id):
     if len(suggests) < 2:
         suggests.append({
             "title": "Ладно",
-            "url": "https://market.yandex.ru/search?text=слон",
+            "url": f"https://market.yandex.ru/search?text={sessionStorage[user_id]['name']}",
             "hide": True
         })
 
